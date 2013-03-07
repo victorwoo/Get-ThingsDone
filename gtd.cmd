@@ -1,0 +1,1 @@
+@powershell -NoProfile -ExecutionPolicy unrestricted .\Get-ThingsDone.ps1
