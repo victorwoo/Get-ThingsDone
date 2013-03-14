@@ -1,4 +1,34 @@
-﻿function TryCreate-Directory ([Parameter(Mandatory = $True)] [string]$dirName)
+﻿function Check-Enviroment
+{
+  $gtdPath = "HKCU:\Software\Vichamp\GTD"
+  if ((Get-ItemProperty $gtdPath -ErrorAction SilentlyContinue).AutoStart -eq "False")
+  {
+    return
+  }
+
+  $runPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+  $run = Get-ItemProperty $runPath
+  if ($run.GTD -eq $null)
+  {
+    $title = "提示"
+    $message = "是否在登录时自动执行脚本？"
+    $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+    $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+    $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes,$no)
+    $result = $Host.UI.PromptForChoice($title,$message,$options,0) 
+    if ($result -eq 0)
+    {
+      Set-ItemProperty -Path $runPath -Name GTD -Value $gtdCmd
+    }
+    else
+    {
+        md $gtdPath -Force
+      Set-ItemProperty -Path $gtdPath -Name AutoStart -Value "False"
+    }
+  }
+}
+
+function TryCreate-Directory ([Parameter(Mandatory = $True)] [string]$dirName)
 {
   $private:dir = Join-Path $baseDir $dirName
   if (-not (Test-Path $dir))
@@ -10,6 +40,7 @@
 
 function TryCreate-Directories ()
 {
+  Write-Output "正在检查目录完整性"
   $dirNames |
   % {
     TryCreate-Directory $_
@@ -85,22 +116,65 @@ function MoveTo-WithRenamming (
   }
 }
 
-function Process-TomorrowDir
-{
-
-  Write-Output "正在将 [TOMORROW] 目录中的内容移至 [TODAY] 目录"
-  Get-ChildItem $tomorrowDir |
-  % {
-    MoveTo-WithRenamming $_ $todayDir
-  }
-}
-
 function Process-IsolatedItems
 {
   Write-Output "正在将游离内容移至 [STUFF] 目录"
   Get-ChildItem $baseDir -Exclude ($dirNames + $reservedFiles) |
   % {
     MoveTo-WithRenamming $_ $stuffDir
+  }
+}
+
+function Process-TomorrowDir
+{
+  Write-Output "正在处理 [TOMORROW] 目录"
+  Get-ChildItem $tomorrowDir |
+  % {
+    MoveTo-WithRenamming $_ $todayDir
+  }
+}
+
+function Process-CalendarDir
+{
+  Write-Output "正在处理 [CALENDAR] 目录"
+  Get-ChildItem $calendarDir -File |
+  % {
+    MoveTo-WithRenamming $_ $stuffDir
+  }
+
+  Get-ChildItem $calendarDir -Directory |
+  % {
+    $regex = [regex]'(?m)^(?<year>19|20\d{2})[-_.](?<month>\d{1,2})[-_.](?<day>\d{1,2})$'
+    $match = $regex.Match($_.Name)
+    if ($match.Success)
+    {
+      $Private:year = $regex.Match($_.Name).Groups['year'].Value;
+      $Private:month = $regex.Match($_.Name).Groups['month'].Value;
+      $Private:day = $regex.Match($_.Name).Groups['day'].Value;
+      $Private:date = New-Object System.DateTime $Private:year,$Private:month,$Private:day
+      $now = (Get-Date)
+      $today = $now.Subtract($now.TimeOfDay)
+      if ($date -lt $today)
+      {
+        Write-Output "移动过期任务 $($_.Name) 到 [STUFF] 目录"
+        MoveTo-WithRenamming $_ $stuffDir
+      }
+      elseif ($date -eq $today)
+      {
+        Write-Output "移动今日任务 $($_.Name) 到 [TODAY] 目录"
+        MoveTo-WithRenamming $_ $todayDir
+      }
+      elseif ($date -eq $today.AddDays(1))
+      {
+        Write-Output "移动明日任务 $($_.Name) 到 [TOMORROW] 目录"
+        MoveTo-WithRenamming $_ $tomorrowDir
+      }
+    }
+    else
+    {
+      Write-Output "[CALENDAR] 目录下，$($_.Name) 名字不符合规范，将移动至 [STUFF] 目录"
+      MoveTo-WithRenamming $_ $stuffDir
+    }
   }
 }
 
@@ -154,7 +228,7 @@ function Process-ArchiveDir
   }
 
   # 移除除本月之外的空目录
-  Get-ChildItem $archiveDir -Exclude $nowString -Recurse | 
+  Get-ChildItem $archiveDir -Exclude $nowString -Recurse |
   Where { $_.PSIsContainer -and @( Get-ChildItem -LiteralPath $_.FullName -Recurse | Where { !$_.PSIsContainer }).Length -eq 0 } |
   % {
     Write-Output "正在删除空目录$($_.FullName)"
@@ -162,42 +236,64 @@ function Process-ArchiveDir
   }
 }
 
+function Explore-Dirs
+{
+  if ((Get-ChildItem $stuffDir) -ne $null)
+  {
+    explorer $stuffDir
+  }
+
+  if ((Get-ChildItem $todayDir) -ne $null)
+  {
+    explorer $todayDir
+  }
+}
 
 $STUFF = "0.STUFF"
 $TODAY = "1.TODAY"
 $TOMORROW = "2.TOMORROW"
 $UPCOMING = "3.UPCOMING"
-$SOMEDAY = "4.SOMEDAY"
-$ARCHIVE = "5.ARCHIVE"
+$CALENDAR = "4.CALENDAR"
+$SOMEDAY = "5.SOMEDAY"
+$ARCHIVE = "6.ARCHIVE"
 
 $stuffDir = Join-Path $baseDir $STUFF
 $todayDir = Join-Path $baseDir $TODAY
 $tomorrowDir = Join-Path $baseDir $TOMORROW
+$calendarDir = Join-Path $baseDir $CALENDAR
 $archiveDir = Join-Path $baseDir $ARCHIVE
+$gtdCmd = Join-Path $baseDir "GTD.cmd"
 
-$dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$SOMEDAY,$ARCHIVE
-$reservedFiles = "Get-ThingsDone.ps1","readme.txt","gtd.cmd"
+$dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$CALENDAR,$SOMEDAY,$ARCHIVE
+$reservedFiles = "Get-ThingsDone.ps1","readme.txt","GTD.cmd","uninstall.cmd"
 
 $baseDir = Split-Path $MyInvocation.MyCommand.Path
 
+Get-Date | Write-Output
 
-
-Write-Output "正在检查目录完整性"
+Check-Enviroment
 TryCreate-Directories
-
-$null | Set-Content (Join-Path $baseDir "test.txt")
-md (Join-Path $baseDir "dir.test") | Out-Null
 
 Process-IsolatedItems
 Process-TomorrowDir
+Process-CalendarDir
 Process-ArchiveDir
+
+Explore-Dirs
 
 ######################### 开发临时用（在 ISE 中选中并按 F8 执行） #########################
 {
   return
+  # 创建游离内容。
+  $null | Set-Content (Join-Path $baseDir "to.del.file.txt")
+  md (Join-Path $baseDir "to.del.dir") | Out-Null
+}
+
+{
+  return
   # 对代码排版。
   Import-Module D:\Dropbox\script\DTW.PS.PrettyPrinterV1\DTW.PS.PrettyPrinterV1.psd1
-  Edit-DTWCleanScript D:\GTD\Get-ThingsDone.ps1
+  Edit-DTWCleanScript D:\Dropbox\vichamp\GTD\Get-ThingsDone.ps1
 }
 
 {
