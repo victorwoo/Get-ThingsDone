@@ -12,8 +12,8 @@
   {
     $title = "提示"
     $message = "是否在登录时自动执行脚本？"
-    $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
-    $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+    $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Windows 用户登录时自动运行此脚本。"
+    $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Windows 用户登录时不运行此脚本，并且不再提示。"
     $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes,$no)
     $result = $Host.UI.PromptForChoice($title,$message,$options,0)
     if ($result -eq 0)
@@ -265,7 +265,7 @@ $archiveDir = Join-Path $baseDir $ARCHIVE
 $gtdCmd = Join-Path $baseDir "GTD.cmd"
 
 $dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$CALENDAR,$SOMEDAY,$ARCHIVE
-$reservedFiles = "Get-ThingsDone.ps1","readme.txt","GTD.cmd","uninstall.cmd"
+$reservedFiles = ".gitignore","Get-ThingsDone.ps1","readme.md","GTD.cmd","uninstall.cmd"
 
 $baseDir = Split-Path $MyInvocation.MyCommand.Path
 
