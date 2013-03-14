@@ -6,24 +6,25 @@
     return
   }
 
-  $runPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+  $runPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
   $run = Get-ItemProperty $runPath
   if ($run.GTD -eq $null)
   {
-    $title = "提示"
-    $message = "是否在登录时自动执行脚本？"
-    $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Windows 用户登录时自动运行此脚本。"
-    $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Windows 用户登录时不运行此脚本，并且不再提示。"
+    $title = '自动执行请求'
+    $message = '在当前 Windows 用户登录时自动运行此脚本，可以自动帮助您整理、规划当日的工作内容。如果您选择了“是”，但将来不希望自动启动，请执行 uninstall.cmd。是否在当前用户登录时自动执行脚本？'
+    $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes","Windows 用户登录时自动运行此脚本。"
+    $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No","Windows 用户登录时不运行此脚本，并且不再提示。"
     $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes,$no)
     $result = $Host.UI.PromptForChoice($title,$message,$options,0)
-    if ($result -eq 0)
+    switch ($result)
     {
-      Set-ItemProperty -Path $runPath -Name GTD -Value $gtdCmd
-    }
-    else
-    {
-      md $gtdPath -Force
-      Set-ItemProperty -Path $gtdPath -Name AutoStart -Value "False"
+      0 {
+        Set-ItemProperty -Path $runPath -Name GTD -Value $gtdCmd
+      }
+      1 {
+        md $gtdPath -Force
+        Set-ItemProperty -Path $gtdPath -Name AutoStart -Value "False"
+      }
     }
   }
 }
@@ -257,17 +258,16 @@ $CALENDAR = "4.CALENDAR"
 $SOMEDAY = "5.SOMEDAY"
 $ARCHIVE = "6.ARCHIVE"
 
+$dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$CALENDAR,$SOMEDAY,$ARCHIVE
+$reservedFiles = ".gitignore","Get-ThingsDone.ps1","readme.md","GTD.cmd","uninstall.cmd"
+
+$baseDir = Split-Path $MyInvocation.MyCommand.Path
 $stuffDir = Join-Path $baseDir $STUFF
 $todayDir = Join-Path $baseDir $TODAY
 $tomorrowDir = Join-Path $baseDir $TOMORROW
 $calendarDir = Join-Path $baseDir $CALENDAR
 $archiveDir = Join-Path $baseDir $ARCHIVE
 $gtdCmd = Join-Path $baseDir "GTD.cmd"
-
-$dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$CALENDAR,$SOMEDAY,$ARCHIVE
-$reservedFiles = ".gitignore","Get-ThingsDone.ps1","readme.md","GTD.cmd","uninstall.cmd"
-
-$baseDir = Split-Path $MyInvocation.MyCommand.Path
 
 Get-Date | Write-Output
 
