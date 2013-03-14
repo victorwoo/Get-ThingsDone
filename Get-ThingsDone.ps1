@@ -15,14 +15,14 @@
     $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
     $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
     $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes,$no)
-    $result = $Host.UI.PromptForChoice($title,$message,$options,0) 
+    $result = $Host.UI.PromptForChoice($title,$message,$options,0)
     if ($result -eq 0)
     {
       Set-ItemProperty -Path $runPath -Name GTD -Value $gtdCmd
     }
     else
     {
-        md $gtdPath -Force
+      md $gtdPath -Force
       Set-ItemProperty -Path $gtdPath -Name AutoStart -Value "False"
     }
   }
