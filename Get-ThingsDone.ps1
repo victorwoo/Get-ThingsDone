@@ -1,4 +1,12 @@
-﻿function Check-Enviroment
+﻿#========================================================================
+# Created with: SAPIEN Technologies, Inc., PowerShell Studio 2012 v3.1.12
+# Created on:   2013-3-7 16:21
+# Created by:   Victor.Woo
+# Organization: www.vichamp.com
+# Filename:  Get-ThingsDone.ps1   
+#========================================================================
+
+function Check-Enviroment
 {
   $gtdPath = "HKCU:\Software\Vichamp\GTD"
   if ((Get-ItemProperty $gtdPath -ErrorAction SilentlyContinue).AutoStart -eq "False")
