@@ -1,3 +1,6 @@
+# Get-ThingsDone
+![logo](gtd_logo.png)
+
 # 欢迎使用
 这是一个基于GTD思想的文件管理PowerShell脚本，能够将您从繁杂的待处理文件中解脱出来。
 
@@ -70,3 +73,5 @@
 - [《搞定》](http://book.douban.com/subject/4849382/)（中文版）
 - [《Get Things Done》](http://book.douban.com/subject/1849836/)（英文版）
 
+# 引用版权声明
+GTD® and Getting Things Done® are registered trademarks of [David Allen & Co](http://www.davidco.com/about-gtd "about gtd").
