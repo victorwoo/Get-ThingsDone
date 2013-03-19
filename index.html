@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Get-ThingsDone : A PowerShell script that make your working files optimized." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Get-ThingsDone</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/victorwoo/Get-ThingsDone">View on GitHub</a>
+
+          <h1 id="project_title">Get-ThingsDone</h1>
+          <h2 id="project_tagline">A PowerShell script that make your working files optimized.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/victorwoo/Get-ThingsDone/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/victorwoo/Get-ThingsDone/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>Get-ThingsDone</h1>
+
+<p><img src="https://raw.github.com/victorwoo/Get-ThingsDone/master/gtd_logo.png" alt="logo"></p>
+
+<h1>欢迎使用</h1>
+
+<p>这是一个基于GTD思想的文件管理PowerShell脚本，能够将您从繁杂的待处理文件中解脱出来。</p>
+
+<p><strong>请注意，本程序并不能“自动”帮您进行日常工作。本程序只是提供了一种操作规范和进行一些辅助处理工作。</strong></p>
+
+<h1>GTD简介</h1>
+
+<blockquote>
+<p>GTD是英文Getting Things Done的缩写，是一种行为管理的方法，也是David Allen写的一本书的书名。
+GTD的主要原则在于一个人需要通过记录的方式把头脑中的各种任务移出来。通过这样的方式，头脑可以不用塞满各种需要完成的事情，而集中精力在正在完成的事情。</p>
+</blockquote>
+
+<h1>使用环境</h1>
+
+<ul>
+<li>Windows XP/2003/Vista/2008/2008R2/8/2012</li>
+<li>PowerShell 2.0/3.0</li>
+</ul><h1>功能特色</h1>
+
+<ul>
+<li>严格遵循GTD思想。</li>
+<li>遇到重名的文件会自动更名，不会丢失任何文件。</li>
+</ul><h1>快速使用方法</h1>
+
+<ul>
+<li>将压缩包解压缩到硬盘上的固定文件夹，例如<code>D:\GTD</code>。</li>
+<li>运行<code>GTD.cmd</code>。</li>
+<li>将文件分类存放至相应文件夹。</li>
+<li>下次运行<code>GTD.cmd</code>时，将按GTD的思想整理文件。</li>
+</ul><h1>详细使用说明</h1>
+
+<h2>目录结构</h2>
+
+<ul>
+<li>
+<code>0.STUFF</code> - <code>收集箱</code>，用于收集零碎的材料（指文件/文件夹），准备好做下一步的处理。</li>
+<li>
+<code>1.TODAY</code> - <code>今日待办</code>，用于存放今日待办的材料。</li>
+<li>
+<code>2.TOMORROW</code> - <code>明日待办</code>，用于存放明日待办的材料。</li>
+<li>
+<code>3.UPCOMING</code> - <code>下一步行动</code>，用于存放紧接着要处理的材料。对于每个需要你关注的事项，定好什么是你可以实际采取的下一步行动。例如，如果事项为“写项目报告”，下一步行动可能会是“给Fred发邮件开个简短会议”，或者“给Jim打电话问报告的要求”，或者类似的事情。虽然要完成这个事项，可能会有很多的步骤和行动，但是其中一定会有你需要首先去做的事情，这样的文件就应该存放在“下一步行动”文件夹中。</li>
+<li>
+<code>4.CALENDAR</code> - <code>日程</code>，用于存放确定某个日期需要处理的材料。当到达指定日期前一天时，其中的材料将会自动移动到<code>2.TOMORROW</code> - <code>明日待办</code>文件夹中。请在在日程目录下，以“YYYY.MM.DD”形式，创建文件夹，以便脚本识别。</li>
+<li>
+<code>5.SOMEDAY</code> - <code>将来也许</code>，用于存放较长时期以后才需要用到的材料。这些材料你需要在某个点去处理，但是不是马上。</li>
+<li>
+<code>6.ARCHIVE</code> - <code>存档</code>，存放已处理好，舍不得删除的材料，用于将来备查。脚本将自动按“YYYY.MM”格式创建文件夹。</li>
+</ul><h2>使用流程</h2>
+
+<ul>
+<li>将压缩包解压缩到硬盘上的固定文件夹，例如<code>D:\GTD</code>。</li>
+<li>首次运行<code>GTD.cmd</code>，脚本询问您是否需要在用户登录时自动运行。
+
+<ul>
+<li>如果您选择“否”，将不再提示。</li>
+<li>如果您选择了“是”，但日后不希望自动运行，请执行<code>uninstall.cmd</code>。</li>
+</ul>
+</li>
+<li>首次运行脚本之后，在您的目录之下将生成<code>0.STUFF</code>、<code>1.TODAY</code>等标准文件夹。请不要任意修改目录结构或在这些目录之外存放材料。</li>
+<li>将日常工作材料放在相应的目录中。</li>
+<li>每日开始工作前，运行一次脚本。</li>
+<li>每日按照GTD的流程，逐项处理<code>0.STUFF</code>、<code>1.TODAY</code>、<code>3.UPCOMING</code>等文件夹中材料。
+<strong>请注意，本程序并不能“自动”帮您进行日常工作。本程序只是提供了一种操作规范和进行一些辅助处理工作。</strong>
+</li>
+</ul><h1>计划中的功能</h1>
+
+<ul>
+<li>制作成在线更新版本。</li>
+<li>重构代码，添加注释。</li>
+<li>做成多语言版。</li>
+</ul><h2>2013-03-19</h2>
+
+<ul>
+<li>排除GoodSync缓存文件夹。</li>
+<li>更改自述文件，以便github自动显示。</li>
+<li>发布1.0版本。</li>
+</ul><h2>2013-03-15</h2>
+
+<ul>
+<li>撰写本文档</li>
+</ul><h2>2013-03-14</h2>
+
+<ul>
+<li>添加Calendar功能</li>
+<li>添加自动运行功能</li>
+</ul><h2>2013-03-07</h2>
+
+<ul>
+<li>初始版本，实现了GTD的<code>收集箱</code>、<code>今日待办</code>、<code>明日待办</code>、<code>下一步行动</code>、<code>将来也许</code>功能。</li>
+</ul><h1>参考材料</h1>
+
+<p>不了解GTD的同学请参考以下材料：</p>
+
+<ul>
+<li><a href="%E7%BB%B4%E5%9F%BA%E7%99%BE%E7%A7%91%E5%85%B3%E4%BA%8EGTD%E7%9A%84%E4%BB%8B%E7%BB%8D" title="http://zh.wikipedia.org/wiki/GTD">维基百科关于GTD的介绍</a></li>
+<li><a href="%E7%99%BE%E5%BA%A6%E7%99%BE%E7%A7%91%E5%85%B3%E4%BA%8EGTD%E7%9A%84%E4%BB%8B%E7%BB%8D" title="http://baike.baidu.com/view/406078.htm">百度百科关于GTD的介绍</a></li>
+<li>
+<a href="http://book.douban.com/subject/4849382/">《搞定》</a>（中文版）</li>
+<li>
+<a href="http://book.douban.com/subject/1849836/">《Get Things Done》</a>（英文版）</li>
+</ul><h1>引用版权声明</h1>
+
+<p>GTD® and Getting Things Done® are registered trademarks of <a href="http://www.davidco.com/about-gtd" title="about gtd">David Allen &amp; Co</a>.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Get-ThingsDone maintained by <a href="https://github.com/victorwoo">victorwoo</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-39409751-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
