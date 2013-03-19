@@ -12,6 +12,9 @@ $RECYCLE.BIN/
 *.un~
 Session.vim 
 
+# GoodSync
+_gsdata_/
+
 0.*/
 1.*/
 2.*/
