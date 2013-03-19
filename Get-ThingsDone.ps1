@@ -267,7 +267,7 @@ $SOMEDAY = "5.SOMEDAY"
 $ARCHIVE = "6.ARCHIVE"
 
 $dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$CALENDAR,$SOMEDAY,$ARCHIVE
-$reservedFiles = ".gitignore","Get-ThingsDone.ps1","readme.md","GTD.cmd","uninstall.cmd"
+$reservedFiles = ".gitignore","Get-ThingsDone.ps1","README*.md","GTD.cmd","uninstall.cmd"
 
 $baseDir = Split-Path $MyInvocation.MyCommand.Path
 $stuffDir = Join-Path $baseDir $STUFF
