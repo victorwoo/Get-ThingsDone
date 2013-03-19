@@ -1,5 +1,5 @@
 # Get-ThingsDone
-![logo](gtd_logo.png)
+![logo](https://raw.github.com/victorwoo/Get-ThingsDone/master/gtd_logo.png)
 
 # 欢迎使用
 这是一个基于GTD思想的文件管理PowerShell脚本，能够将您从繁杂的待处理文件中解脱出来。
