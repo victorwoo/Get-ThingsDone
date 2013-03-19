@@ -128,7 +128,7 @@ function MoveTo-WithRenamming (
 function Process-IsolatedItems
 {
   Write-Output "正在将游离内容移至 [STUFF] 目录"
-  Get-ChildItem $baseDir -Exclude ($dirNames + $reservedFiles) |
+  Get-ChildItem $baseDir -Exclude ($dirNames + $reservedDirs + $reservedFiles) |
   % {
     MoveTo-WithRenamming $_ $stuffDir
   }
@@ -267,7 +267,8 @@ $SOMEDAY = "5.SOMEDAY"
 $ARCHIVE = "6.ARCHIVE"
 
 $dirNames = $STUFF,$TODAY,$TOMORROW,$UPCOMING,$CALENDAR,$SOMEDAY,$ARCHIVE
-$reservedFiles = ".gitignore","Get-ThingsDone.ps1","README*.md","GTD.cmd","uninstall.cmd"
+$reservedDirs = ".git","_gsdata_"
+$reservedFiles = ".gitignore","Get-ThingsDone.ps1","README*.md","gtd_logo.png","LICENSE.md","GTD.cmd","uninstall.cmd"
 
 $baseDir = Split-Path $MyInvocation.MyCommand.Path
 $stuffDir = Join-Path $baseDir $STUFF
