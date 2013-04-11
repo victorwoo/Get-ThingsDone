@@ -106,15 +106,26 @@ function MoveTo-WithRenamming (
   Write-Output "正在移动 $item 至 $targetDir 目录"
   if ($item -is [System.IO.FileInfo])
   {
+    [System.IO.FileInfo]$item = [System.IO.FileInfo]$item
     $Private:targetFilePath = Join-Path $targetDir $item.Name
     if (Test-Path $Private:targetFilePath)
     {
+      $targetFileInfo = [System.IO.FileInfo]$Private:targetFilePath
       $Private:targetFilePath = Get-NextFilePath $targetDir $item
-      Write-Warning "目标文件已存在，自动改名为$($Private:targetFilePath.Name)"
+      if ($item.LastWriteTime -eq $targetFileInfo.LastWriteTime -and $item.Length -eq $targetFileInfo.Length)
+      {
+        Write-Warning "源文件 $item.FullName 与目标文件 $targetFileInfo.FullName 相同，删除源文件"
+        Remove-Item $item.FullName
+      }
+      else
+      {
+        Write-Warning "目标文件已存在，自动改名为$($Private:targetFilePath.Name)"
+        Move-Item $item.FullName $Private:targetFilePath | Out-Null
+      }
     }
-    Move-Item $item.FullName $Private:targetFilePath | Out-Null
   } elseif ($item -is [System.IO.DirectoryInfo])
   {
+    [System.IO.DirectoryInfo]$item = [System.IO.DirectoryInfo]$item
     $Private:targetDirectoryPath = Join-Path $targetDir $item.Name
     if (Test-Path $Private:targetDirectoryPath)
     {
@@ -190,10 +201,30 @@ function Process-CalendarDir
 function Process-ArchiveDir
 {
   Write-Output "正在检查 [ARCHIVE] 目录"
-  # 移动所有文件到 [STUFF] 目录
+
+  # 创建本月目录
+  $nowString = "{0:yyyy.MM}" -f (Get-Date)
+  $thisMonthDir = Join-Path $archiveDir $nowString
+  if (-not (Test-Path $thisMonthDir))
+  {
+    Write-Output "正在创建本月目录"
+    md $thisMonthDir
+  }
+
+  # 移除除本月之外的空目录
+  Get-ChildItem $archiveDir -Exclude $nowString -Recurse |
+  Where { $_.PSIsContainer -and @( Get-ChildItem -LiteralPath $_.FullName -Recurse | Where { !$_.PSIsContainer }).Length -eq 0 } |
+  % {
+    Write-Output "正在删除空目录$($_.FullName)"
+    Remove-Item -Recurse
+  }
+
+  # 移动所有文件到 本月存档 目录
   Get-ChildItem $archiveDir -File |
   % {
-    MoveTo-WithRenamming $_ $stuffDir
+    $createTime = $nowString = "{0:yyyy.MM}" -f $_.CreationTime
+    Write-Output "移动 [ARCHIVE] 目录下，$($_.Name) 游离文件至 $createTime 存档目录"
+    MoveTo-WithRenamming $_ $thisMonthDir
   }
 
   # 检查目录命名是否符合规范。
@@ -223,25 +254,10 @@ function Process-ArchiveDir
       }
     } else
     {
-      Write-Output "[ARCHIVE] 目录下，$($_.Name) 名字不符合规范，将移动至 [STUFF] 目录"
-      MoveTo-WithRenamming $_ $stuffDir
+      $createTime = $nowString = "{0:yyyy.MM}" -f $_.CreationTime
+      Write-Output "移动 [ARCHIVE] 目录下，$($_.Name) 游离文件夹至 $createTime 存档目录"
+      MoveTo-WithRenamming $_ $thisMonthDir
     }
-  }
-
-  # 创建本月目录
-  $nowString = "{0:yyyy.MM}" -f (Get-Date)
-  $thisMonthDir = Join-Path $archiveDir $nowString
-  if (-not (Test-Path $thisMonthDir))
-  {
-    md $thisMonthDir
-  }
-
-  # 移除除本月之外的空目录
-  Get-ChildItem $archiveDir -Exclude $nowString -Recurse |
-  Where { $_.PSIsContainer -and @( Get-ChildItem -LiteralPath $_.FullName -Recurse | Where { !$_.PSIsContainer }).Length -eq 0 } |
-  % {
-    Write-Output "正在删除空目录$($_.FullName)"
-    Remove-Item -Recurse
   }
 }
 
