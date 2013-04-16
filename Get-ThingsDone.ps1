@@ -106,14 +106,18 @@ function MoveTo-WithRenamming (
   Write-Output "正在移动 $item 至 $targetDir 目录"
   if ($item -is [System.IO.FileInfo])
   {
+    # 待移动的是文件
     [System.IO.FileInfo]$item = [System.IO.FileInfo]$item
     $Private:targetFilePath = Join-Path $targetDir $item.Name
     if (Test-Path $Private:targetFilePath)
     {
+      # 目标文件已存在
       $targetFileInfo = [System.IO.FileInfo]$Private:targetFilePath
       $Private:targetFilePath = Get-NextFilePath $targetDir $item
+      
       if ($item.LastWriteTime -eq $targetFileInfo.LastWriteTime -and $item.Length -eq $targetFileInfo.Length)
       {
+        # 文件时间和大小相同
         Write-Warning "源文件 $item.FullName 与目标文件 $targetFileInfo.FullName 相同，删除源文件"
         Remove-Item $item.FullName
       }
@@ -123,8 +127,19 @@ function MoveTo-WithRenamming (
         Move-Item $item.FullName $Private:targetFilePath | Out-Null
       }
     }
+    else
+    {
+      # 目标文件不存在
+      if (!(Test-Path $targetDir))
+      {
+        # 目标目录不存在，创建目标目录
+        md $targetDir | Out-Null
+      }
+      Move-Item $item.FullName $Private:targetFilePath | Out-Null
+    }
   } elseif ($item -is [System.IO.DirectoryInfo])
   {
+    # 待移动的是目录
     [System.IO.DirectoryInfo]$item = [System.IO.DirectoryInfo]$item
     $Private:targetDirectoryPath = Join-Path $targetDir $item.Name
     if (Test-Path $Private:targetDirectoryPath)
@@ -222,9 +237,10 @@ function Process-ArchiveDir
   # 移动所有文件到 本月存档 目录
   Get-ChildItem $archiveDir -File |
   % {
-    $createTime = $nowString = "{0:yyyy.MM}" -f $_.CreationTime
-    Write-Output "移动 [ARCHIVE] 目录下，$($_.Name) 游离文件至 $createTime 存档目录"
-    MoveTo-WithRenamming $_ $thisMonthDir
+    $lastWriteTime = "{0:yyyy.MM}" -f $_.LastWriteTime
+    $lastWriteDir = Join-Path $archiveDir $lastWriteTime
+    Write-Output "移动 [ARCHIVE] 目录下，$($_.Name) 游离文件至 $lastWriteDir 存档目录"
+    MoveTo-WithRenamming $_ $lastWriteDir
   }
 
   # 检查目录命名是否符合规范。
@@ -234,6 +250,7 @@ function Process-ArchiveDir
     $match = $regex.Match($_.Name)
     if ($match.Success)
     {
+      # Archive目录下的名字符合格式
       $year = $regex.Match($_.Name).Groups['year'].Value;
       $month = $regex.Match($_.Name).Groups['month'].Value;
       $date = New-Object System.DateTime $year,$month,1
@@ -254,9 +271,11 @@ function Process-ArchiveDir
       }
     } else
     {
-      $createTime = $nowString = "{0:yyyy.MM}" -f $_.CreationTime
-      Write-Output "移动 [ARCHIVE] 目录下，$($_.Name) 游离文件夹至 $createTime 存档目录"
-      MoveTo-WithRenamming $_ $thisMonthDir
+      # Archive目录下的名字符不合格式
+      $lastWriteTime = $nowString = "{0:yyyy.MM}" -f $_.LastWriteTime
+      $lastWriteDir = Join-Path $archiveDir $lastWriteTime
+      Write-Output "移动 [ARCHIVE] 目录下，$($_.Name) 游离文件夹至 $lastWriteDir 存档目录"
+      MoveTo-WithRenamming $_ $lastWriteDir
     }
   }
 }
@@ -307,6 +326,8 @@ Process-ArchiveDir
 Explore-Dirs
 
 ######################### 开发临时用（在 ISE 中选中并按 F8 执行） #########################
+return
+
 {
   return
   # 创建游离内容。
