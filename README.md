@@ -1,3 +1,4 @@
+<a target="_blank" href="http://wp.qq.com/wpa/qunwpa?idkey=554811f77edb8de205df4340567b4a74e421808b0a847a2a633b801c37774a08"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="中国PowerShell资源交流" title="中国PowerShell资源交流"></a>
 # Get-ThingsDone
 **最新版本：1.0.4.1，发布时间：2013-04-16**
 
